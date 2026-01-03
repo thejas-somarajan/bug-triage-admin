@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Users, CheckSquare, MessageSquare, Settings, LogOut, HelpCircle } from "lucide-react"
+import { LayoutDashboard, Users, CheckSquare, MessageSquare, Settings, LogOut, HelpCircle, FolderKanban } from "lucide-react"
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -10,6 +10,7 @@ export function Sidebar() {
   const menuItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/employees", label: "Employees", icon: Users },
+    { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/issues", label: "Issue Assignment", icon: CheckSquare },
     { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -40,9 +41,8 @@ export function Sidebar() {
             return (
               <Link key={item.href} href={item.href}>
                 <div
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${
-                    isActive ? "bg-[#3b82f6] text-white" : "text-[#94a3b8] hover:bg-[#0f172a] hover:text-white"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive ? "bg-[#3b82f6] text-white" : "text-[#94a3b8] hover:bg-[#0f172a] hover:text-white"
+                    }`}
                 >
                   <Icon size={20} />
                   <span>{item.label}</span>

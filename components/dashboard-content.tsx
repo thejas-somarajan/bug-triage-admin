@@ -1,74 +1,80 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, Users2, Clock, Smile, Search, FolderKanban, AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
-
-const chartData = [
-  { day: "Mon", completed: 65, target: 100 },
-  { day: "Tue", completed: 78, target: 100 },
-  { day: "Wed", completed: 45, target: 100 },
-  { day: "Thu", completed: 82, target: 100 },
-  { day: "Fri", completed: 90, target: 100 },
-  { day: "Sat", completed: 55, target: 100 },
-  { day: "Sun", completed: 40, target: 100 },
-]
-
-const employeeData = [
-  {
-    id: 1,
-    name: "Courtney Henry",
-    role: "Senior Dev",
-    department: "Engineering",
-    status: "Online",
-    efficiency: 92,
-    color: "from-[#e97316] to-[#ca8a04]",
-  },
-  {
-    id: 2,
-    name: "Tom Cook",
-    role: "Product Manager",
-    department: "Product",
-    status: "In Meeting",
-    efficiency: 78,
-    color: "from-[#3b82f6] to-[#0ea5e9]",
-  },
-]
-
-const activityData = [
-  {
-    type: "completed",
-    name: "Sarah Jenkins",
-    action: "completed task",
-    task: "#API-902",
-    time: "10 minutes ago",
-  },
-  {
-    type: "commented",
-    name: "Mike Ross",
-    action: "commented on",
-    task: "Design Review",
-    time: "45 minutes ago",
-  },
-  {
-    type: "alert",
-    name: "System",
-    action: "flagged slow response time on",
-    task: "Server 3",
-    time: "2 hours ago",
-  },
-  {
-    type: "bot",
-    name: "HR Bot",
-    action: "added a new profile for",
-    task: "L. Croft",
-    time: "5 hours ago",
-  },
-]
+import { dashboardService } from "@/lib/api/services/dashboard.service"
+import { activityService } from "@/lib/api/services/activity.service"
+import type { DashboardPerformance, Activity } from "@/lib/api/types"
 
 export function DashboardContent() {
+  const [performance, setPerformance] = useState<DashboardPerformance | null>(null)
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const [perfResponse, activityResponse] = await Promise.all([
+        dashboardService.getPerformance(),
+        activityService.getActivity(4),
+      ])
+
+      if (perfResponse.error) {
+        setError(perfResponse.error.description)
+      } else if (perfResponse.data) {
+        setPerformance(perfResponse.data)
+      }
+
+      if (activityResponse.data) {
+        setActivities(activityResponse.data)
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load dashboard data")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Transform API data for chart
+  const chartData = performance
+    ? performance.weekly_completed.map((completed, index) => ({
+      day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][index] || `Day ${index + 1}`,
+      completed,
+      target: performance.weekly_target[index] || 100,
+    }))
+    : []
+
+  const employeeData = [
+    {
+      id: 1,
+      name: "Courtney Henry",
+      role: "Senior Dev",
+      department: "Engineering",
+      status: "Online",
+      efficiency: 92,
+      color: "from-[#e97316] to-[#ca8a04]",
+    },
+    {
+      id: 2,
+      name: "Tom Cook",
+      role: "Product Manager",
+      department: "Product",
+      status: "In Meeting",
+      efficiency: 78,
+      color: "from-[#3b82f6] to-[#0ea5e9]",
+    },
+  ]
   return (
     <div className="p-8">
       {/* Header */}
@@ -98,8 +104,14 @@ export function DashboardContent() {
             <FolderKanban className="text-[#64748b]" size={20} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-white">12</div>
-            <p className="text-sm text-[#22c55e] mt-1">+3 this month</p>
+            {isLoading ? (
+              <div className="h-10 bg-[#0f172a] animate-pulse rounded" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-white">12</div>
+                <p className="text-sm text-[#22c55e] mt-1">+3 this month</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -109,9 +121,15 @@ export function DashboardContent() {
             <Users2 className="text-[#64748b]" size={20} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-white">48</div>
-            <p className="text-sm text-[#94a3b8] mt-1">Active team members</p>
-            <p className="text-sm text-[#22c55e] mt-1">+6 this quarter</p>
+            {isLoading ? (
+              <div className="h-10 bg-[#0f172a] animate-pulse rounded" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-white">48</div>
+                <p className="text-sm text-[#94a3b8] mt-1">Active team members</p>
+                <p className="text-sm text-[#22c55e] mt-1">+6 this quarter</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -121,8 +139,14 @@ export function DashboardContent() {
             <AlertCircle className="text-[#64748b]" size={20} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-white">24</div>
-            <p className="text-sm text-[#f87171] mt-1">8 critical</p>
+            {isLoading ? (
+              <div className="h-10 bg-[#0f172a] animate-pulse rounded" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-white">{performance?.total_active_issues || 0}</div>
+                <p className="text-sm text-[#f87171] mt-1">8 critical</p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -132,12 +156,22 @@ export function DashboardContent() {
             <Smile className="text-[#64748b]" size={20} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-white">
-              4.8 <span className="text-lg text-[#94a3b8]">/5.0</span>
-            </div>
-            <div className="bg-[#0f172a] h-2 rounded-full mt-3">
-              <div className="bg-[#22c55e] h-2 rounded-full w-3/4"></div>
-            </div>
+            {isLoading ? (
+              <div className="h-10 bg-[#0f172a] animate-pulse rounded" />
+            ) : (
+              <>
+                <div className="text-3xl font-bold text-white">
+                  {performance?.team_satisfaction?.toFixed(1) || "0.0"}{" "}
+                  <span className="text-lg text-[#94a3b8]">/5.0</span>
+                </div>
+                <div className="bg-[#0f172a] h-2 rounded-full mt-3">
+                  <div
+                    className="bg-[#22c55e] h-2 rounded-full"
+                    style={{ width: `${((performance?.team_satisfaction || 0) / 5) * 100}%` }}
+                  />
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -178,20 +212,32 @@ export function DashboardContent() {
             </a>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {activityData.map((item, idx) => (
-                <div key={idx} className="flex gap-3 text-sm">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ec4899] to-[#db2777] flex-shrink-0"></div>
-                  <div className="flex-1">
-                    <p className="text-white">
-                      <span className="font-semibold">{item.name}</span> {item.action}{" "}
-                      <span className="text-[#3b82f6]">{item.task}</span>
-                    </p>
-                    <p className="text-[#64748b] text-xs mt-1">{item.time}</p>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-12 bg-[#0f172a] animate-pulse rounded" />
+                ))}
+              </div>
+            ) : activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map((item, idx) => (
+                  <div key={idx} className="flex gap-3 text-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ec4899] to-[#db2777] flex-shrink-0"></div>
+                    <div className="flex-1">
+                      <p className="text-white">
+                        <span className="font-semibold">{item.actor_name}</span> {item.action}{" "}
+                        <span className="text-[#3b82f6]">{item.target}</span>
+                      </p>
+                      <p className="text-[#64748b] text-xs mt-1">
+                        {new Date(item.created_at).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[#64748b] text-sm">No recent activity</p>
+            )}
           </CardContent>
         </Card>
       </div>

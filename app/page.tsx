@@ -1,40 +1,49 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { authService } from "@/lib/api/services/auth.service"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
 
-    if (!email || !password) {
-      alert("Please enter both email and password")
+    if (!username || !password) {
+      setError("Please enter both username and password")
       return
     }
 
     setIsLoading(true)
 
     try {
-      // Simulate API call - replace with actual authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await authService.login(username, password)
 
-      // Store session and redirect to dashboard
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("userEmail", email)
-      router.push("/dashboard")
-    } catch (error) {
-      alert("Login failed. Please try again.")
+      if (response.error) {
+        setError(response.error.description || "Login failed. Please try again.")
+        return
+      }
+
+      if (response.data?.access_token) {
+        // Store session info for compatibility
+        localStorage.setItem("isLoggedIn", "true")
+        localStorage.setItem("userEmail", username)
+        router.push("/dashboard")
+      } else {
+        setError("Invalid response from server")
+      }
+    } catch (error: any) {
+      setError(error.message || "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -57,13 +66,19 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-500 text-sm">
+                {error}
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-white mb-2">Username</label>
               <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-[#0f172a] border-[#334155] text-white placeholder:text-[#64748b]"
               />
             </div>
