@@ -16,6 +16,7 @@ export function IssueAssignmentContent() {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [showTriageDialog, setShowTriageDialog] = useState(false)
+  const [expandedAssignments, setExpandedAssignments] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     loadIssues()
@@ -178,11 +179,8 @@ export function IssueAssignmentContent() {
 
         {/* Active Assignments */}
         <Card className="lg:col-span-2 bg-[#1e293b] border-[#334155]">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="text-white">Active Assignments</CardTitle>
-            <a href="#" className="text-[#3b82f6] text-sm hover:text-[#2563eb]">
-              View All Employees →
-            </a>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -227,7 +225,7 @@ export function IssueAssignmentContent() {
                     </div>
                     {assignment.issues.length > 0 ? (
                       <div className="space-y-2">
-                        {assignment.issues.slice(0, 2).map((issue) => (
+                        {(expandedAssignments.has(idx) ? assignment.issues : assignment.issues.slice(0, 2)).map((issue) => (
                           <div key={issue.id} className="bg-[#0f172a] rounded p-3 text-sm">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-[#3b82f6]">✓</span>
@@ -238,9 +236,22 @@ export function IssueAssignmentContent() {
                           </div>
                         ))}
                         {assignment.issues.length > 2 && (
-                          <p className="text-[#64748b] text-xs text-center">
-                            +{assignment.issues.length - 2} more issues
-                          </p>
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedAssignments)
+                              if (newExpanded.has(idx)) {
+                                newExpanded.delete(idx)
+                              } else {
+                                newExpanded.add(idx)
+                              }
+                              setExpandedAssignments(newExpanded)
+                            }}
+                            className="text-[#3b82f6] hover:text-[#2563eb] text-xs text-center w-full py-2 hover:bg-[#0f172a] rounded transition-colors"
+                          >
+                            {expandedAssignments.has(idx)
+                              ? "Show Less"
+                              : `+${assignment.issues.length - 2} more issues`}
+                          </button>
                         )}
                       </div>
                     ) : (
