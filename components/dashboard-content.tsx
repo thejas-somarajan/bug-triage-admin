@@ -8,11 +8,13 @@ import { TrendingUp, Users2, Clock, Smile, Search, FolderKanban, AlertCircle } f
 import { Input } from "@/components/ui/input"
 import { dashboardService } from "@/lib/api/services/dashboard.service"
 import { activityService } from "@/lib/api/services/activity.service"
-import type { DashboardPerformance, Activity } from "@/lib/api/types"
+import { employeeService } from "@/lib/api/services/employee.service"
+import type { DashboardPerformance, Activity, Employee } from "@/lib/api/types"
 
 export function DashboardContent() {
   const [performance, setPerformance] = useState<DashboardPerformance | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,9 +27,10 @@ export function DashboardContent() {
     setError(null)
 
     try {
-      const [perfResponse, activityResponse] = await Promise.all([
+      const [perfResponse, activityResponse, employeeResponse] = await Promise.all([
         dashboardService.getPerformance(),
         activityService.getActivity(4),
+        employeeService.getEmployees(),
       ])
 
       if (perfResponse.error) {
@@ -38,6 +41,10 @@ export function DashboardContent() {
 
       if (activityResponse.data) {
         setActivities(activityResponse.data)
+      }
+
+      if (employeeResponse.data) {
+        setEmployees(employeeResponse.data)
       }
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard data")
@@ -55,26 +62,7 @@ export function DashboardContent() {
     }))
     : []
 
-  const employeeData = [
-    {
-      id: 1,
-      name: "Courtney Henry",
-      role: "Senior Dev",
-      department: "Engineering",
-      status: "Online",
-      efficiency: 92,
-      color: "from-[#e97316] to-[#ca8a04]",
-    },
-    {
-      id: 2,
-      name: "Tom Cook",
-      role: "Product Manager",
-      department: "Product",
-      status: "In Meeting",
-      efficiency: 78,
-      color: "from-[#3b82f6] to-[#0ea5e9]",
-    },
-  ]
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -268,39 +256,68 @@ export function DashboardContent() {
                 </tr>
               </thead>
               <tbody>
-                {employeeData.map((employee) => (
+                {employees.map((employee) => (
                   <tr key={employee.id} className="border-b border-[#334155] hover:bg-[#0f172a]">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${employee.color}`}></div>
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                          style={{
+                            background: `linear-gradient(135deg, ${employee.avatar_color || "#3b82f6"}, #1e293b)`,
+                          }}
+                        >
+                          {employee.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </div>
                         <div>
                           <p className="text-white font-medium">{employee.name}</p>
                           <p className="text-[#94a3b8] text-xs">{employee.department}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-white">{employee.role}</td>
+                    <td className="py-4 px-4 text-white">{employee.role_title}</td>
                     <td className="py-4 px-4">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${employee.status === "Online"
+                        className={`px-2 py-1 rounded text-xs font-medium ${employee.status === "online"
                           ? "bg-[#10b981]/20 text-[#10b981]"
-                          : "bg-[#f59e0b]/20 text-[#f59e0b]"
+                          : employee.status === "away"
+                            ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                            : employee.status === "in_meeting"
+                              ? "bg-[#3b82f6]/20 text-[#3b82f6]"
+                              : "bg-[#64748b]/20 text-[#64748b]"
                           }`}
                       >
-                        {employee.status === "Online" && "● "}
-                        {employee.status}
+                        {employee.status === "online" && "● "}
+                        {employee.status.replace("_", " ").toUpperCase()}
                       </span>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <div className="bg-[#0f172a] h-2 rounded-full w-20">
-                          <div className={`bg-gradient-to-r ${employee.color} h-2 rounded-full w-3/4`}></div>
+                          <div
+                            className="h-2 rounded-full"
+                            style={{
+                              width: `${employee.efficiency_score}%`,
+                              background:
+                                employee.efficiency_score >= 80
+                                  ? "#22c55e"
+                                  : employee.efficiency_score >= 50
+                                    ? "#f59e0b"
+                                    : "#ef4444",
+                            }}
+                          ></div>
                         </div>
-                        <span className="text-white">{employee.efficiency}%</span>
+                        <span className="text-white">{employee.efficiency_score}%</span>
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <button className="text-[#3b82f6] hover:text-[#2563eb] text-sm font-medium">View</button>
+                      <button className="text-[#3b82f6] hover:text-[#2563eb] text-sm font-medium">
+                        View
+                      </button>
                     </td>
                   </tr>
                 ))}

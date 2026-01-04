@@ -1,11 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { LayoutDashboard, Users, CheckSquare, MessageSquare, Settings, LogOut, HelpCircle, FolderKanban } from "lucide-react"
+import { authService } from "@/lib/api/services/auth.service"
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    authService.logout()
+    router.push("/")
+  }
 
   const menuItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -59,7 +66,10 @@ export function Sidebar() {
           <HelpCircle size={20} className="text-[#94a3b8]" />
           <span className="text-[#94a3b8] font-medium">Help & Support</span>
         </div>
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#0f172a] cursor-pointer transition-colors text-[#ef4444]">
+        <div
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[#0f172a] cursor-pointer transition-colors text-[#ef4444]"
+        >
           <LogOut size={20} />
           <span className="font-medium">Logout</span>
         </div>

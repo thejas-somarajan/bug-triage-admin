@@ -254,6 +254,7 @@ export function IssueAssignmentContent() {
                           </button>
                         )}
                       </div>
+                      
                     ) : (
                       <div className="border border-dashed border-[#334155] rounded p-4 text-center text-[#64748b] text-sm">
                         No issues assigned
