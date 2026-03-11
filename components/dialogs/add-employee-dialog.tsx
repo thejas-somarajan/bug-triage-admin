@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { employeeService } from "@/lib/api/services/employee.service"
+import { authService } from "@/lib/api/services/auth.service"
 
 interface AddEmployeeDialogProps {
     open: boolean
@@ -48,6 +49,7 @@ const AVATAR_COLORS = [
 export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployeeDialogProps) {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
     const [roleTitle, setRoleTitle] = useState("")
     const [department, setDepartment] = useState("")
     const [selectedSpecs, setSelectedSpecs] = useState<string[]>([])
@@ -59,15 +61,29 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
         e.preventDefault()
         setError(null)
 
-        if (!name || !email || !roleTitle || !department || selectedSpecs.length === 0) {
-            setError("All fields are required and at least one specialization must be selected")
+        if (!name || !email || !password || !roleTitle || !department || selectedSpecs.length === 0) {
+            setError("All fields are required, a password must be provided, and at least one specialization must be selected")
             return
         }
 
         setIsLoading(true)
 
         try {
-            const response = await employeeService.createEmployee({
+            // Step 1: Register the user in the auth system with role 'user'
+            const registerResponse = await authService.register({
+                username: name,
+                email,
+                password,
+                role: 'user',
+            })
+
+            if (registerResponse.error) {
+                setError(`Registration failed: ${registerResponse.error.description}`)
+                return
+            }
+
+            // Step 2: Create the employee profile
+            const employeeResponse = await employeeService.createEmployee({
                 name,
                 email,
                 role_title: roleTitle,
@@ -76,8 +92,8 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
                 avatar_color: avatarColor,
             })
 
-            if (response.error) {
-                setError(response.error.description)
+            if (employeeResponse.error) {
+                setError(`User account created but employee profile failed: ${employeeResponse.error.description}`)
             } else {
                 handleClose()
                 onSuccess()
@@ -92,6 +108,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
     const handleClose = () => {
         setName("")
         setEmail("")
+        setPassword("")
         setRoleTitle("")
         setDepartment("")
         setSelectedSpecs([])
@@ -152,6 +169,22 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
                                 disabled={isLoading}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="password" className="text-white">
+                            Password *
+                        </Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="Enter a password for the employee"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="bg-[#0f172a] border-[#334155] text-white placeholder:text-[#64748b]"
+                            disabled={isLoading}
+                        />
+                        <p className="text-xs text-[#64748b]">This password will be used by the employee to log in.</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

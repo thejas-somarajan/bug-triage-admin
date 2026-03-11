@@ -127,12 +127,6 @@ export default function LoginPage() {
             Protected by reCAPTCHA and subject to the Privacy Policy and Terms of Service.
           </div>
         </div>
-
-        {/* Company branding */}
-        <div className="text-center mt-8 flex items-center justify-center gap-2">
-          <div className="w-6 h-6 bg-gradient-to-br from-[#9333ea] to-[#7e22ce] rounded"></div>
-          <span className="text-[#94a3b8]">EmpowerHR Systems</span>
-        </div>
       </div>
     </div>
   )
