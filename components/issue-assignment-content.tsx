@@ -201,24 +201,26 @@ export function IssueAssignmentContent() {
                           className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
                           style={{ background: "#3b82f6" }}
                         >
-                          {assignment.employee.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)}
+                          {assignment.employee?.name
+                            ? assignment.employee.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()
+                                .slice(0, 2)
+                            : "?"}
                         </div>
                         <div>
-                          <p className="text-white font-medium">{assignment.employee.name}</p>
+                          <p className="text-white font-medium">{assignment.employee?.name || "Unknown Employee"}</p>
                           <p className="text-[#94a3b8] text-xs">{assignment.issues.length} issues</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-white font-semibold">{assignment.employee.workload}% Load</p>
+                        <p className="text-white font-semibold">{assignment.employee?.workload || 0}% Load</p>
                         <div className="bg-[#0f172a] h-2 rounded-full mt-1 w-20">
                           <div
                             className="h-2 rounded-full"
-                            style={{ width: `${assignment.employee.workload}%`, background: "#3b82f6" }}
+                            style={{ width: `${assignment.employee?.workload || 0}%`, background: "#3b82f6" }}
                           ></div>
                         </div>
                       </div>
