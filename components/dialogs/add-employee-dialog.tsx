@@ -74,7 +74,7 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
                 username: name,
                 email,
                 password,
-                role: 'user',
+                role: 'employee',
             })
 
             if (registerResponse.error) {
