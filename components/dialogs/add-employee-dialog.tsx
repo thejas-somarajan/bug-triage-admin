@@ -69,12 +69,19 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
         setIsLoading(true)
 
         try {
-            // Step 1: Register the user in the auth system with role 'user'
+            // Pre-check: Verify no employee with this email already exists
+            const existingEmployees = await employeeService.getEmployees(email)
+            if (existingEmployees.data && existingEmployees.data.some(emp => emp.email === email)) {
+                setError("An employee with this email already exists.")
+                return
+            }
+
+            // Step 1: Register the user in the auth system with role 'employee'
             const registerResponse = await authService.register({
                 username: name,
                 email,
                 password,
-                role: 'user',
+                role: 'employee',
             })
 
             if (registerResponse.error) {
@@ -92,12 +99,10 @@ export function AddEmployeeDialog({ open, onOpenChange, onSuccess }: AddEmployee
                 avatar_color: avatarColor,
             })
 
-            if (employeeResponse.error) {
-                setError(`User account created but employee profile failed: ${employeeResponse.error.description}`)
-            } else {
-                handleClose()
-                onSuccess()
-            }
+            handleClose()
+            // Small delay to ensure backend has committed the new employee
+            await new Promise(resolve => setTimeout(resolve, 500))
+            onSuccess()
         } catch (err: any) {
             setError(err.message || "Failed to create employee")
         } finally {
