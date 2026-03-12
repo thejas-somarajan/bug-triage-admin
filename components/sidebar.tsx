@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, Users, CheckSquare, MessageSquare, Settings, LogOut, HelpCircle, FolderKanban } from "lucide-react"
+import { LayoutDashboard, Users, CheckSquare, Settings, LogOut, HelpCircle, FolderKanban } from "lucide-react"
 import { authService } from "@/lib/api/services/auth.service"
 
 export function Sidebar() {
@@ -19,7 +19,6 @@ export function Sidebar() {
     { href: "/dashboard/employees", label: "Employees", icon: Users },
     { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
     { href: "/dashboard/issues", label: "Issue Assignment", icon: CheckSquare },
-    { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ]
 

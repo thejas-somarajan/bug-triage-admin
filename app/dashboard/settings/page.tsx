@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Bell, Lock, Users } from "lucide-react"
+import { Bell, Lock } from "lucide-react"
 import { settingsService } from "@/lib/api/services/settings.service"
 import type { Settings } from "@/lib/api/types"
 
@@ -222,20 +222,6 @@ export default function SettingsPage() {
                 </Button>
               </>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Team Management */}
-        <Card className="bg-[#1e293b] border-[#334155]">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users size={20} />
-              Team Management
-            </CardTitle>
-            <CardDescription className="text-[#94a3b8]">Manage team members and permissions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white">+ Invite Team Member</Button>
           </CardContent>
         </Card>
       </div>
